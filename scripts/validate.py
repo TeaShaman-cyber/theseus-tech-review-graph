@@ -35,11 +35,16 @@ REFERENCE_FIELDS = {
 def load_registry(schema_dir: Path) -> Registry:
     resources = []
     for path in sorted(schema_dir.glob("*.json")):
-        contents = json.loads(path.read_text(encoding="utf-8"))
-        uri = contents.get("$id")
-        if not uri:
-            raise ValueError(f"schema missing $id: {path}")
-        resources.append((uri, Resource.from_contents(contents)))
+        try:
+            contents = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(contents, dict):
+                raise ValueError("top-level schema must be an object")
+            uri = contents.get("$id")
+            if not uri:
+                raise ValueError("missing $id")
+            resources.append((uri, Resource.from_contents(contents)))
+        except Exception as exc:
+            raise ValueError(f"invalid schema {path.name}: {exc}") from exc
     return Registry().with_resources(resources)
 
 
@@ -125,8 +130,12 @@ def validate_cross_references(documents: list[tuple[Path, dict]]) -> list[str]:
 def validate_repository(root: Path = ROOT) -> list[str]:
     schema_dir = root / "schemas"
     examples_dir = root / "examples"
-    registry = load_registry(schema_dir)
     failures = []
+    try:
+        registry = load_registry(schema_dir)
+    except Exception as exc:
+        failures.append(str(exc))
+        return failures
     for path in sorted(schema_dir.glob("*.json")):
         schema = json.loads(path.read_text(encoding="utf-8"))
         try:
@@ -156,10 +165,12 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         except (OSError, UnicodeError, json.JSONDecodeError) as exc:
             failures.append(f"example {path.name}: invalid JSON: {exc}")
             continue
-        documents.append((path, document))
         schema_path = schema_for_example(path, schema_dir)
         for error in validate_document(document, schema_path, registry):
             failures.append(f"example {path.name}: {error}")
+        if not isinstance(document, dict):
+            continue
+        documents.append((path, document))
         failures.extend(validate_cross_field_invariants(path, document))
 
     failures.extend(validate_cross_references(documents))
