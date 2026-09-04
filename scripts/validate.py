@@ -35,6 +35,7 @@ REFERENCE_FIELDS = {
 
 def load_registry(schema_dir: Path) -> Registry:
     resources = []
+    seen_uris = {}
     for path in sorted(schema_dir.glob("*.json")):
         try:
             contents = json.loads(path.read_text(encoding="utf-8"))
@@ -43,6 +44,9 @@ def load_registry(schema_dir: Path) -> Registry:
             uri = contents.get("$id")
             if not uri:
                 raise ValueError("missing $id")
+            if uri in seen_uris:
+                raise ValueError(f"duplicate schema $id {uri!r}; already defined by {seen_uris[uri]}")
+            seen_uris[uri] = path.name
             resources.append((uri, Resource.from_contents(contents)))
         except Exception as exc:
             raise ValueError(f"invalid schema {path.name}: {exc}") from exc

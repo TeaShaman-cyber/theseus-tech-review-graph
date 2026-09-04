@@ -39,7 +39,7 @@
 - [ ] Write README and focused docs using vendor-neutral role names first and current implementations only as historical examples.
 - [ ] Add Mermaid diagrams for module replacement, KnowledgeOps flow, and tech-review vertical.
 - [ ] Verify no document presents Notion, Basic Memory, ChatGPT, or Grok as mandatory.
-- [ ] Run `python3 scripts/check_docs.py` after Task 3 introduces the documentation checker; until then run `grep -R "TODO\\|TBD" README.md docs` and require no matches.
+- [ ] Run `python3 scripts/check_docs.py` and require a clean documentation-contract result.
 - [ ] Commit as `docs: define replaceable KnowledgeOps architecture`.
 
 ### Task 2: Core JSON Schemas and synthetic corpus

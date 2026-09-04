@@ -273,6 +273,65 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
                 errors,
             )
 
+    def test_repository_rejects_duplicate_schema_ids(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            source_path = root / "schemas/source.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            source = json.loads(source_path.read_text(encoding="utf-8"))
+            source["$id"] = actor["$id"]
+            source_path.write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(any("duplicate schema $id" in error for error in errors), errors)
+
+    def test_check_docs_cli_fails_when_contract_is_invalid(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "docs", root / "docs")
+            shutil.copy2(ROOT / "README.md", root / "README.md")
+            (root / "docs/architecture.md").write_text("TODO\n", encoding="utf-8")
+            result = __import__("subprocess").run(
+                [__import__("sys").executable, str(ROOT / "scripts/check_docs.py"), str(root)],
+                text=True,
+                capture_output=True,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("forbidden placeholder TODO", result.stdout + result.stderr)
+
+    def test_docs_require_all_top_level_contract_documents(self):
+        required = [
+            "docs/epistemic-contract.md",
+            "docs/intake-contract.md",
+            "docs/lifecycle.md",
+            "docs/tech-review-knowledge-adapter.md",
+        ]
+        for rel in required:
+            with self.subTest(document=rel), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                shutil.copytree(ROOT / "docs", root / "docs")
+                shutil.copy2(ROOT / "README.md", root / "README.md")
+                (root / rel).unlink()
+                errors = check_docs(root)
+                self.assertTrue(any(f"required documentation missing: {rel}" in e for e in errors), errors)
+
+    def test_docs_scan_nested_markdown_for_placeholders(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "docs", root / "docs")
+            shutil.copy2(ROOT / "README.md", root / "README.md")
+            nested = root / "docs/superpowers/specs/nested.md"
+            nested.parent.mkdir(parents=True, exist_ok=True)
+            nested.write_text("TBD\n", encoding="utf-8")
+
+            errors = check_docs(root)
+
+            self.assertTrue(any("docs/superpowers/specs/nested.md" in e and "TBD" in e for e in errors), errors)
+
     def test_docs_report_missing_readme_without_traceback(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
