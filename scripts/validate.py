@@ -161,24 +161,28 @@ def validate_repository(root: Path = ROOT) -> list[str]:
 
     for path in sorted(schema_dir.glob("*.json")):
         schema = json.loads(path.read_text(encoding="utf-8"))
-        resolver = registry.resolver(schema.get("$id", ""))
-        stack = [("$", schema)]
+        resource = Resource.from_contents(schema)
+        root_resolver = registry.resolver_with_root(resource)
+        stack = [("$", "", schema)]
         while stack:
-            location, node = stack.pop()
+            location, pointer, node = stack.pop()
             if isinstance(node, dict):
-                ref = node.get("$ref")
-                if isinstance(ref, str):
-                    try:
-                        resolver.lookup(ref)
-                    except Unresolvable as exc:
-                        failures.append(
-                            f"schema {path.name}: unresolved schema reference at {location}: {ref}: {exc}"
-                        )
+                resolver = resource.pointer(pointer, root_resolver).resolver
+                for keyword in ("$ref", "$dynamicRef"):
+                    ref = node.get(keyword)
+                    if isinstance(ref, str):
+                        try:
+                            resolver.lookup(ref)
+                        except Unresolvable as exc:
+                            failures.append(
+                                f"schema {path.name}: unresolved schema reference at {location}: {ref}: {exc}"
+                            )
                 for key, value in node.items():
-                    stack.append((f"{location}.{key}", value))
+                    escaped = key.replace("~", "~0").replace("/", "~1")
+                    stack.append((f"{location}.{key}", f"{pointer}/{escaped}", value))
             elif isinstance(node, list):
                 for index, value in enumerate(node):
-                    stack.append((f"{location}[{index}]", value))
+                    stack.append((f"{location}[{index}]", f"{pointer}/{index}", value))
     if failures:
         return failures
 

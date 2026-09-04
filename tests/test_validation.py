@@ -289,6 +289,45 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
 
             self.assertTrue(any("duplicate schema $id" in error for error in errors), errors)
 
+    def test_repository_resolves_refs_against_nested_id_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["properties"]["optional_nested_scope"] = {
+                "$id": "nested/",
+                "$ref": "common.schema.json#/$defs/id",
+            }
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("actor.schema.json" in error and "unresolved schema reference" in error for error in errors),
+                errors,
+            )
+
+    def test_repository_validates_dynamic_refs_without_example_coverage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["properties"]["optional_broken_dynamic_ref"] = {
+                "$dynamicRef": "https://example.invalid/missing.schema.json#node"
+            }
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("actor.schema.json" in error and "unresolved schema reference" in error for error in errors),
+                errors,
+            )
+
     def test_check_docs_cli_fails_when_contract_is_invalid(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
