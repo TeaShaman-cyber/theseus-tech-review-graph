@@ -194,6 +194,33 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
 
             self.assertTrue(any("signal.schema.json" in error for error in errors), errors)
 
+
+    def test_repository_stops_when_shared_schema_is_invalid(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            bad_path = root / "schemas/common.schema.json"
+            schema = json.loads(bad_path.read_text(encoding="utf-8"))
+            schema["$defs"]["id"]["type"] = 7
+            bad_path.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(any("common.schema.json" in error for error in errors), errors)
+
+    def test_repository_reports_missing_required_schema(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            missing = root / "schemas/signal.schema.json"
+            missing.rename(root / "schemas/signal.schema.json.missing")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(any("missing required schema: signal.schema.json" in error for error in errors), errors)
+
     def test_docs_preserve_replaceable_module_invariant(self):
         errors = check_docs(ROOT)
         self.assertEqual([], errors)

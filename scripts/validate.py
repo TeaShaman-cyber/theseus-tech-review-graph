@@ -132,6 +132,13 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     examples_dir = root / "examples"
     failures = []
     invalid_schema_names = set()
+    required_schema_names = {"common.schema.json"} | {f"{entity}.schema.json" for entity in REQUIRED_ENTITIES}
+    present_schema_names = {path.name for path in schema_dir.glob("*.json")}
+    for required_name in sorted(required_schema_names - present_schema_names):
+        failures.append(f"missing required schema: {required_name}")
+    if failures:
+        return failures
+
     try:
         registry = load_registry(schema_dir)
     except Exception as exc:
@@ -144,6 +151,8 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         except Exception as exc:
             failures.append(f"schema {path.name}: {exc}")
             invalid_schema_names.add(path.name)
+    if failures:
+        return failures
 
     json_paths = sorted(examples_dir.rglob("*.json"))
     example_paths = []
