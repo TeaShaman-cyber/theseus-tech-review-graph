@@ -155,6 +155,29 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     if failures:
         return failures
 
+    for path in sorted(schema_dir.glob("*.json")):
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        resolver = registry.resolver(schema.get("$id", ""))
+        stack = [("$", schema)]
+        while stack:
+            location, node = stack.pop()
+            if isinstance(node, dict):
+                ref = node.get("$ref")
+                if isinstance(ref, str):
+                    try:
+                        resolver.lookup(ref)
+                    except Unresolvable as exc:
+                        failures.append(
+                            f"schema {path.name}: unresolved schema reference at {location}: {ref}: {exc}"
+                        )
+                for key, value in node.items():
+                    stack.append((f"{location}.{key}", value))
+            elif isinstance(node, list):
+                for index, value in enumerate(node):
+                    stack.append((f"{location}[{index}]", value))
+    if failures:
+        return failures
+
     json_paths = sorted(examples_dir.rglob("*.json"))
     example_paths = []
     for path in json_paths:

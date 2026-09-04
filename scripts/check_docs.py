@@ -23,6 +23,8 @@ def check_docs(root: Path) -> list[str]:
     failures = []
     docs = [root / 'README.md'] + sorted((root / 'docs').glob('*.md'))
     for path in docs:
+        if not path.exists():
+            continue
         text = path.read_text(encoding='utf-8')
         for marker in FORBIDDEN_PLACEHOLDERS:
             if marker in text:

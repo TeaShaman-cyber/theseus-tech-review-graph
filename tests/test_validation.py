@@ -253,6 +253,38 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
                 errors,
             )
 
+
+    def test_repository_reports_unresolved_optional_schema_reference_without_example_coverage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["properties"]["optional_broken_ref"] = {
+                "$ref": "https://example.invalid/missing.schema.json#/$defs/value"
+            }
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("actor.schema.json" in error and "unresolved schema reference" in error for error in errors),
+                errors,
+            )
+
+    def test_docs_report_missing_readme_without_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "docs", root / "docs")
+
+            errors = check_docs(root)
+
+            self.assertTrue(
+                any("required documentation missing: README.md" in error for error in errors),
+                errors,
+            )
+
     def test_docs_preserve_replaceable_module_invariant(self):
         errors = check_docs(ROOT)
         self.assertEqual([], errors)
