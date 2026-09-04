@@ -69,6 +69,19 @@ def validate_document(document: dict, schema_path: Path, registry: Registry) -> 
     return result
 
 
+def validate_cross_field_invariants(path: Path, document: dict) -> list[str]:
+    failures = []
+    if document.get("type") == "Brief":
+        period_start = document.get("period_start")
+        period_end = document.get("period_end")
+        if isinstance(period_start, str) and isinstance(period_end, str) and period_start > period_end:
+            failures.append(
+                f"example {path.name}: $.period_start must be <= $.period_end "
+                f"({period_start!r} > {period_end!r})"
+            )
+    return failures
+
+
 def validate_cross_references(documents: list[tuple[Path, dict]]) -> list[str]:
     failures = []
     index = {}
@@ -121,7 +134,12 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         except Exception as exc:
             failures.append(f"schema {path.name}: {exc}")
 
-    example_paths = sorted(examples_dir.glob("*.example.json"))
+    json_paths = sorted(examples_dir.glob("*.json"))
+    for path in json_paths:
+        if not path.name.endswith(".example.json"):
+            failures.append(f"unexpected example filename: {path.name}")
+
+    example_paths = [path for path in json_paths if path.name.endswith(".example.json")]
     present_names = {path.name for path in example_paths}
     for entity in REQUIRED_ENTITIES:
         required_name = f"{entity}.example.json"
@@ -135,6 +153,7 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         schema_path = schema_for_example(path, schema_dir)
         for error in validate_document(document, schema_path, registry):
             failures.append(f"example {path.name}: {error}")
+        failures.extend(validate_cross_field_invariants(path, document))
 
     failures.extend(validate_cross_references(documents))
     return failures
