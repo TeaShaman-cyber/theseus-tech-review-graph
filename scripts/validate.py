@@ -134,12 +134,14 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         except Exception as exc:
             failures.append(f"schema {path.name}: {exc}")
 
-    json_paths = sorted(examples_dir.glob("*.json"))
+    json_paths = sorted(examples_dir.rglob("*.json"))
+    example_paths = []
     for path in json_paths:
-        if not path.name.endswith(".example.json"):
-            failures.append(f"unexpected example filename: {path.name}")
-
-    example_paths = [path for path in json_paths if path.name.endswith(".example.json")]
+        relative = path.relative_to(examples_dir)
+        if path.parent != examples_dir or not path.name.endswith(".example.json"):
+            failures.append(f"unexpected example filename: {relative.as_posix()}")
+            continue
+        example_paths.append(path)
     present_names = {path.name for path in example_paths}
     for entity in REQUIRED_ENTITIES:
         required_name = f"{entity}.example.json"

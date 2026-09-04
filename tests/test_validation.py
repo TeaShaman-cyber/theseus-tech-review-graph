@@ -106,6 +106,22 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
                 errors,
             )
 
+    def test_repository_rejects_nested_untracked_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / 'schemas', root / 'schemas')
+            shutil.copytree(ROOT / 'examples', root / 'examples')
+            nested = root / 'examples/archive'
+            nested.mkdir()
+            (nested / 'untracked.json').write_text('{}\n', encoding='utf-8')
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any('archive/untracked.json' in error and 'unexpected example filename' in error for error in errors),
+                errors,
+            )
+
     def test_docs_preserve_replaceable_module_invariant(self):
         errors = check_docs(ROOT)
         self.assertEqual([], errors)
