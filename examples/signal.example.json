@@ -1,0 +1,23 @@
+{
+  "id": "signal.synthetic.memory-portability-001",
+  "type": "Signal",
+  "observed_on": "2026-09-04",
+  "claim": "A synthetic runtime exposes an exportable memory-state interface.",
+  "why_it_matters": "It illustrates a portable knowledge-state signal without depending on a real vendor.",
+  "source_ids": [
+    "source.synthetic.release-001"
+  ],
+  "actor_ids": [
+    "actor.synthetic.runtime-lab"
+  ],
+  "theme_ids": [
+    "theme.agent-memory-portability"
+  ],
+  "epistemic_state": "FACT",
+  "currentness_state": "CURRENT",
+  "provenance": {
+    "producer_class": "SCHEDULED_AGENT",
+    "intake_class": "DOCUMENT",
+    "origin_label": "synthetic-tech-review"
+  }
+}

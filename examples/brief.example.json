@@ -1,0 +1,15 @@
+{
+  "id": "brief.synthetic.2026-w36",
+  "type": "Brief",
+  "period_start": "2026-08-31",
+  "period_end": "2026-09-06",
+  "summary": "Synthetic weekly brief: portability remains an active design theme.",
+  "signal_ids": [
+    "signal.synthetic.memory-portability-001"
+  ],
+  "theme_ids": [
+    "theme.agent-memory-portability"
+  ],
+  "epistemic_state": "INFERENCE",
+  "currentness_state": "CURRENT"
+}

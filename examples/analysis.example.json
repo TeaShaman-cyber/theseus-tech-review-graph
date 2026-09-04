@@ -1,0 +1,14 @@
+{
+  "id": "analysis.synthetic.portability",
+  "type": "Analysis",
+  "title": "Portability as an architectural invariant",
+  "thesis": "Knowledge infrastructure is more replaceable when state contracts are separated from vendor-specific storage APIs.",
+  "evidence_signal_ids": [
+    "signal.synthetic.memory-portability-001"
+  ],
+  "theme_ids": [
+    "theme.agent-memory-portability"
+  ],
+  "epistemic_state": "HYPOTHESIS",
+  "currentness_state": "CANDIDATE"
+}

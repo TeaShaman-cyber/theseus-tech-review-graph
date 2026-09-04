@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json",
+  "title": "Theseus KnowledgeOps Common Definitions",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{2,127}$"
+    },
+    "epistemicState": {
+      "enum": [
+        "FACT",
+        "INFERENCE",
+        "HYPOTHESIS",
+        "UNVERIFIED",
+        "DEGRADED"
+      ]
+    },
+    "currentnessState": {
+      "enum": [
+        "CANDIDATE",
+        "REVIEWED",
+        "VERIFIED",
+        "CURRENT",
+        "STALE",
+        "INVALIDATED",
+        "HISTORICAL"
+      ]
+    },
+    "isoDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "uri": {
+      "type": "string",
+      "format": "uri"
+    }
+  }
+}
