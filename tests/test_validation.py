@@ -1,8 +1,10 @@
 import json
+import shutil
+import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.validate import load_registry, schema_for_example, validate_document
+from scripts.validate import load_registry, schema_for_example, validate_document, validate_repository
 from scripts.check_docs import check_docs
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +34,45 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
         document = json.loads(path.read_text(encoding="utf-8"))
         errors = validate_document(document, ROOT / "schemas/signal.schema.json", self.registry)
         self.assertTrue(any("TRUE-ish" in error for error in errors), errors)
+
+    def test_repository_rejects_missing_required_entity_example(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            examples_dir = root / "examples"
+            examples_dir.mkdir()
+            for path in sorted((ROOT / "examples").glob("*.example.json")):
+                if path.name != "analysis.example.json":
+                    shutil.copy2(path, examples_dir / path.name)
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("missing required example: analysis.example.json" in error for error in errors),
+                errors,
+            )
+
+    def test_repository_rejects_dangling_cross_entity_reference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            source_path = root / "examples/source.example.json"
+            source = json.loads(source_path.read_text(encoding="utf-8"))
+            source["id"] = "source.synthetic.release-renamed"
+            source_path.write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any(
+                    "signal.example.json" in error
+                    and "source_ids" in error
+                    and "source.synthetic.release-001" in error
+                    for error in errors
+                ),
+                errors,
+            )
 
     def test_docs_preserve_replaceable_module_invariant(self):
         errors = check_docs(ROOT)
