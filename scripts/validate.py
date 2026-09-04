@@ -150,7 +150,12 @@ def validate_repository(root: Path = ROOT) -> list[str]:
 
     documents = []
     for path in example_paths:
-        document = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            raw = path.read_text(encoding="utf-8")
+            document = json.loads(raw)
+        except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+            failures.append(f"example {path.name}: invalid JSON: {exc}")
+            continue
         documents.append((path, document))
         schema_path = schema_for_example(path, schema_dir)
         for error in validate_document(document, schema_path, registry):

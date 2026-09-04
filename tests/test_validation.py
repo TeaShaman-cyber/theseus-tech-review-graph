@@ -122,6 +122,25 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
                 errors,
             )
 
+    def test_repository_reports_malformed_tracked_example_as_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            bad_path = root / "examples/signal.example.json"
+            bad_path.write_text("{not-json}\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any(
+                    "signal.example.json" in error
+                    and "invalid JSON" in error
+                    for error in errors
+                ),
+                errors,
+            )
+
     def test_docs_preserve_replaceable_module_invariant(self):
         errors = check_docs(ROOT)
         self.assertEqual([], errors)
