@@ -131,6 +131,7 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     schema_dir = root / "schemas"
     examples_dir = root / "examples"
     failures = []
+    invalid_schema_names = set()
     try:
         registry = load_registry(schema_dir)
     except Exception as exc:
@@ -142,6 +143,7 @@ def validate_repository(root: Path = ROOT) -> list[str]:
             validator_for(schema).check_schema(schema)
         except Exception as exc:
             failures.append(f"schema {path.name}: {exc}")
+            invalid_schema_names.add(path.name)
 
     json_paths = sorted(examples_dir.rglob("*.json"))
     example_paths = []
@@ -166,6 +168,9 @@ def validate_repository(root: Path = ROOT) -> list[str]:
             failures.append(f"example {path.name}: invalid JSON: {exc}")
             continue
         schema_path = schema_for_example(path, schema_dir)
+        if schema_path.name in invalid_schema_names:
+            failures.append(f"example {path.name}: skipped validation because schema {schema_path.name} is invalid")
+            continue
         for error in validate_document(document, schema_path, registry):
             failures.append(f"example {path.name}: {error}")
         if not isinstance(document, dict):
