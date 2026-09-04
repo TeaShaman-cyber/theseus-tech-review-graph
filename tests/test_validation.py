@@ -221,6 +221,38 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
 
             self.assertTrue(any("missing required schema: signal.schema.json" in error for error in errors), errors)
 
+
+    def test_repository_rejects_unsupported_entity_example_without_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            (root / "examples/foo.example.json").write_text("{}\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("foo.example.json" in error and "unsupported example entity" in error for error in errors),
+                errors,
+            )
+
+    def test_repository_reports_unresolved_schema_reference_without_traceback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            common_path = root / "schemas/common.schema.json"
+            common = json.loads(common_path.read_text(encoding="utf-8"))
+            common["$id"] = "https://example.invalid/common-renamed.schema.json"
+            common_path.write_text(json.dumps(common, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("unresolved schema reference" in error for error in errors),
+                errors,
+            )
+
     def test_docs_preserve_replaceable_module_invariant(self):
         errors = check_docs(ROOT)
         self.assertEqual([], errors)

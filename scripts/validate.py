@@ -5,6 +5,7 @@ from pathlib import Path
 from jsonschema import FormatChecker
 from jsonschema.validators import validator_for
 from referencing import Registry, Resource
+from referencing.exceptions import Unresolvable
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_ENTITIES = {
@@ -161,6 +162,10 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         if path.parent != examples_dir or not path.name.endswith(".example.json"):
             failures.append(f"unexpected example filename: {relative.as_posix()}")
             continue
+        entity = path.name[: -len(".example.json")]
+        if entity not in REQUIRED_ENTITIES:
+            failures.append(f"unsupported example entity: {path.name}")
+            continue
         example_paths.append(path)
     present_names = {path.name for path in example_paths}
     for entity in REQUIRED_ENTITIES:
@@ -180,7 +185,14 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         if schema_path.name in invalid_schema_names:
             failures.append(f"example {path.name}: skipped validation because schema {schema_path.name} is invalid")
             continue
-        for error in validate_document(document, schema_path, registry):
+        try:
+            validation_errors = validate_document(document, schema_path, registry)
+        except Exception as exc:
+            if not isinstance(exc.__cause__, Unresolvable):
+                raise
+            failures.append(f"example {path.name}: unresolved schema reference: {exc}")
+            continue
+        for error in validation_errors:
             failures.append(f"example {path.name}: {error}")
         if not isinstance(document, dict):
             continue
