@@ -328,6 +328,41 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
                 errors,
             )
 
+    def test_repository_ignores_ref_shaped_instance_data_in_const(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["properties"]["literal_ref_object"] = {
+                "const": {"$ref": "literal-not-a-schema-reference"}
+            }
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertEqual([], errors)
+
+    def test_repository_rejects_duplicate_embedded_schema_ids(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            duplicate_id = "https://example.invalid/embedded-resource"
+            actor_path = root / "schemas/actor.schema.json"
+            source_path = root / "schemas/source.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            source = json.loads(source_path.read_text(encoding="utf-8"))
+            actor["properties"]["embedded_a"] = {"$id": duplicate_id, "type": "string"}
+            source["properties"]["embedded_b"] = {"$id": duplicate_id, "type": "string"}
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+            source_path.write_text(json.dumps(source, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(any("duplicate schema $id" in error and duplicate_id in error for error in errors), errors)
+
     def test_check_docs_cli_fails_when_contract_is_invalid(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

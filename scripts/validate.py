@@ -2,6 +2,7 @@
 import json
 import sys
 from pathlib import Path
+from urllib.parse import urljoin
 from jsonschema import FormatChecker
 from jsonschema.validators import validator_for
 from referencing import Registry, Resource
@@ -16,6 +17,49 @@ REQUIRED_ENTITIES = {
     "source": "Source",
     "theme": "Theme",
 }
+SCHEMA_SINGLE_KEYWORDS = {
+    "additionalProperties", "contains", "contentSchema", "else", "if", "items",
+    "not", "propertyNames", "then", "unevaluatedItems", "unevaluatedProperties",
+}
+SCHEMA_ARRAY_KEYWORDS = {"allOf", "anyOf", "oneOf", "prefixItems"}
+SCHEMA_MAP_KEYWORDS = {"$defs", "definitions", "dependentSchemas", "patternProperties", "properties"}
+
+
+def _pointer_token(value: str) -> str:
+    return value.replace("~", "~0").replace("/", "~1")
+
+
+def iter_schema_nodes(schema, base_uri: str = ""):
+    stack = [("$", "", schema, base_uri)]
+    while stack:
+        location, pointer, node, parent_base = stack.pop()
+        if not isinstance(node, dict):
+            continue
+        declared_id = node.get("$id")
+        current_base = urljoin(parent_base, declared_id) if isinstance(declared_id, str) else parent_base
+        yield location, pointer, node, current_base
+
+        for key in SCHEMA_SINGLE_KEYWORDS:
+            if key in node:
+                child = node[key]
+                stack.append((f"{location}.{key}", f"{pointer}/{_pointer_token(key)}", child, current_base))
+        for key in SCHEMA_ARRAY_KEYWORDS:
+            value = node.get(key)
+            if isinstance(value, list):
+                for index, child in enumerate(value):
+                    stack.append((f"{location}.{key}[{index}]", f"{pointer}/{_pointer_token(key)}/{index}", child, current_base))
+        for key in SCHEMA_MAP_KEYWORDS:
+            value = node.get(key)
+            if isinstance(value, dict):
+                for name, child in value.items():
+                    stack.append((
+                        f"{location}.{key}.{name}",
+                        f"{pointer}/{_pointer_token(key)}/{_pointer_token(name)}",
+                        child,
+                        current_base,
+                    ))
+
+
 REFERENCE_FIELDS = {
     "Analysis": {
         "evidence_signal_ids": "Signal",
@@ -44,9 +88,17 @@ def load_registry(schema_dir: Path) -> Registry:
             uri = contents.get("$id")
             if not uri:
                 raise ValueError("missing $id")
-            if uri in seen_uris:
-                raise ValueError(f"duplicate schema $id {uri!r}; already defined by {seen_uris[uri]}")
-            seen_uris[uri] = path.name
+
+            for location, _, node, resolved_base in iter_schema_nodes(contents):
+                if not isinstance(node.get("$id"), str):
+                    continue
+                origin = f"{path.name}:{location}"
+                if resolved_base in seen_uris:
+                    raise ValueError(
+                        f"duplicate schema $id {resolved_base!r}; already defined by {seen_uris[resolved_base]}"
+                    )
+                seen_uris[resolved_base] = origin
+
             resources.append((uri, Resource.from_contents(contents)))
         except Exception as exc:
             raise ValueError(f"invalid schema {path.name}: {exc}") from exc
@@ -163,26 +215,17 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         schema = json.loads(path.read_text(encoding="utf-8"))
         resource = Resource.from_contents(schema)
         root_resolver = registry.resolver_with_root(resource)
-        stack = [("$", "", schema)]
-        while stack:
-            location, pointer, node = stack.pop()
-            if isinstance(node, dict):
-                resolver = resource.pointer(pointer, root_resolver).resolver
-                for keyword in ("$ref", "$dynamicRef"):
-                    ref = node.get(keyword)
-                    if isinstance(ref, str):
-                        try:
-                            resolver.lookup(ref)
-                        except Unresolvable as exc:
-                            failures.append(
-                                f"schema {path.name}: unresolved schema reference at {location}: {ref}: {exc}"
-                            )
-                for key, value in node.items():
-                    escaped = key.replace("~", "~0").replace("/", "~1")
-                    stack.append((f"{location}.{key}", f"{pointer}/{escaped}", value))
-            elif isinstance(node, list):
-                for index, value in enumerate(node):
-                    stack.append((f"{location}[{index}]", f"{pointer}/{index}", value))
+        for location, pointer, node, _ in iter_schema_nodes(schema):
+            resolver = resource.pointer(pointer, root_resolver).resolver
+            for keyword in ("$ref", "$dynamicRef"):
+                ref = node.get(keyword)
+                if isinstance(ref, str):
+                    try:
+                        resolver.lookup(ref)
+                    except Unresolvable as exc:
+                        failures.append(
+                            f"schema {path.name}: unresolved schema reference at {location}: {ref}: {exc}"
+                        )
     if failures:
         return failures
 
