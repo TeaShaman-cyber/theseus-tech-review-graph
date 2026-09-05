@@ -23,6 +23,7 @@ SCHEMA_SINGLE_KEYWORDS = {
 }
 SCHEMA_ARRAY_KEYWORDS = {"allOf", "anyOf", "oneOf", "prefixItems"}
 SCHEMA_MAP_KEYWORDS = {"$defs", "definitions", "dependentSchemas", "patternProperties", "properties"}
+EXPECTED_SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 
 
 def _pointer_token(value: str) -> str:
@@ -86,6 +87,11 @@ def load_registry(schema_dir: Path) -> Registry:
             contents = json.loads(path.read_text(encoding="utf-8"))
             if not isinstance(contents, dict):
                 raise ValueError("top-level schema must be an object")
+            dialect = contents.get("$schema")
+            if dialect != EXPECTED_SCHEMA_DIALECT:
+                raise ValueError(
+                    f"unsupported schema dialect {dialect!r}; expected {EXPECTED_SCHEMA_DIALECT!r}"
+                )
             uri = contents.get("$id")
             if not uri:
                 raise ValueError("missing $id")
@@ -236,7 +242,12 @@ def validate_repository(root: Path = ROOT) -> list[str]:
                 ref = node.get(keyword)
                 if isinstance(ref, str):
                     try:
-                        resolver.lookup(ref)
+                        resolved = resolver.lookup(ref)
+                        if not isinstance(resolved.contents, (dict, bool)):
+                            failures.append(
+                                f"schema {path.name}: non-schema reference target at {location}: {ref}: "
+                                f"resolved to {type(resolved.contents).__name__}"
+                            )
                     except Unresolvable as exc:
                         failures.append(
                             f"schema {path.name}: unresolved schema reference at {location}: {ref}: {exc}"

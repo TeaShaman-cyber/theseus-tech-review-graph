@@ -395,6 +395,42 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
 
             self.assertTrue(any("duplicate schema anchor" in error and "dup" in error for error in errors), errors)
 
+    def test_repository_rejects_refs_to_non_schema_values(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["properties"]["optional_bad_ref"] = {
+                "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/title"
+            }
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("non-schema reference target" in error and "common.schema.json#/title" in error for error in errors),
+                errors,
+            )
+
+    def test_repository_rejects_non_2020_12_dialect(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["$schema"] = "http://json-schema.org/draft-07/schema#"
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(
+                any("unsupported schema dialect" in error and "actor.schema.json" in error for error in errors),
+                errors,
+            )
+
     def test_check_docs_cli_fails_when_contract_is_invalid(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
