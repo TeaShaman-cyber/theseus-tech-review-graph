@@ -363,6 +363,38 @@ class KnowledgeOpsValidationTests(unittest.TestCase):
 
             self.assertTrue(any("duplicate schema $id" in error and duplicate_id in error for error in errors), errors)
 
+
+    def test_repository_accepts_percent_escaped_property_pointer(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor["properties"]["optional%2Ffield"] = {
+                "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/id"
+            }
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertEqual([], errors)
+
+    def test_repository_rejects_duplicate_anchors_within_resource(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(ROOT / "schemas", root / "schemas")
+            shutil.copytree(ROOT / "examples", root / "examples")
+            actor_path = root / "schemas/actor.schema.json"
+            actor = json.loads(actor_path.read_text(encoding="utf-8"))
+            actor.setdefault("$defs", {})["anchored_a"] = {"$anchor": "dup", "type": "string"}
+            actor["$defs"]["anchored_b"] = {"$dynamicAnchor": "dup", "type": "string"}
+            actor_path.write_text(json.dumps(actor, indent=2) + "\n", encoding="utf-8")
+
+            errors = validate_repository(root)
+
+            self.assertTrue(any("duplicate schema anchor" in error and "dup" in error for error in errors), errors)
+
     def test_check_docs_cli_fails_when_contract_is_invalid(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

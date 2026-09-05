@@ -26,7 +26,7 @@ SCHEMA_MAP_KEYWORDS = {"$defs", "definitions", "dependentSchemas", "patternPrope
 
 
 def _pointer_token(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
+    return value.replace("~", "~0").replace("/", "~1").replace("%", "%25")
 
 
 def iter_schema_nodes(schema, base_uri: str = ""):
@@ -80,6 +80,7 @@ REFERENCE_FIELDS = {
 def load_registry(schema_dir: Path) -> Registry:
     resources = []
     seen_uris = {}
+    seen_anchors = {}
     for path in sorted(schema_dir.glob("*.json")):
         try:
             contents = json.loads(path.read_text(encoding="utf-8"))
@@ -98,6 +99,20 @@ def load_registry(schema_dir: Path) -> Registry:
                         f"duplicate schema $id {resolved_base!r}; already defined by {seen_uris[resolved_base]}"
                     )
                 seen_uris[resolved_base] = origin
+
+            for location, _, node, resolved_base in iter_schema_nodes(contents):
+                origin = f"{path.name}:{location}"
+                for keyword in ("$anchor", "$dynamicAnchor"):
+                    anchor = node.get(keyword)
+                    if not isinstance(anchor, str):
+                        continue
+                    key = (resolved_base, anchor)
+                    if key in seen_anchors:
+                        raise ValueError(
+                            f"duplicate schema anchor {anchor!r} in resource {resolved_base!r}; "
+                            f"already defined by {seen_anchors[key]}"
+                        )
+                    seen_anchors[key] = origin
 
             resources.append((uri, Resource.from_contents(contents)))
         except Exception as exc:
