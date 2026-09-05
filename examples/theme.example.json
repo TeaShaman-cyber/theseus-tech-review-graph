@@ -1,0 +1,8 @@
+{
+  "id": "theme.agent-memory-portability",
+  "type": "Theme",
+  "name": "Agent memory portability",
+  "description": "Whether memory state can survive replacement of the producing agent or storage backend.",
+  "epistemic_state": "INFERENCE",
+  "currentness_state": "CURRENT"
+}

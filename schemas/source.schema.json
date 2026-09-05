@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/source.schema.json",
+  "title": "Source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "title",
+    "source_class",
+    "url",
+    "retrieved_at"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/id"
+    },
+    "type": {
+      "const": "Source"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_class": {
+      "enum": [
+        "PRIMARY",
+        "SECONDARY",
+        "AGGREGATOR",
+        "DATASET",
+        "REPOSITORY",
+        "OTHER"
+      ]
+    },
+    "url": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/uri"
+    },
+    "published_at": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/isoDate"
+    },
+    "retrieved_at": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/isoDate"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "actor.synthetic.runtime-lab",
+  "type": "Actor",
+  "name": "Synthetic Runtime Lab",
+  "actor_class": "ORGANIZATION",
+  "epistemic_state": "FACT",
+  "currentness_state": "CURRENT",
+  "aliases": [
+    "SRL"
+  ]
+}

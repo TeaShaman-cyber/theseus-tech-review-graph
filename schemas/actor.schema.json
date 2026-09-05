@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/actor.schema.json",
+  "title": "Actor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "name",
+    "actor_class",
+    "epistemic_state",
+    "currentness_state"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/id"
+    },
+    "type": {
+      "const": "Actor"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor_class": {
+      "enum": [
+        "ORGANIZATION",
+        "PROJECT",
+        "PERSON",
+        "MODEL",
+        "PROTOCOL",
+        "OTHER"
+      ]
+    },
+    "epistemic_state": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/epistemicState"
+    },
+    "currentness_state": {
+      "$ref": "https://teashaman-cyber.github.io/theseus-tech-review-graph/schemas/common.schema.json#/$defs/currentnessState"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}
