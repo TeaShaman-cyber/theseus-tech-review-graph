@@ -39,3 +39,26 @@ The names preserve origin; the stage contracts are vendor-neutral.
 | release notes | brief/reflection |
 
 Schema validity proves shape, not truth. A validator may prove that a `Signal` has a source and legal states; it cannot prove the underlying claim is factually correct.
+
+## Verified knowledge mutation
+
+For non-trivial multi-tool changes, KnowledgeOps may insert an experimental
+orchestration step before durable state is accepted:
+
+```text
+candidate
+  -> relation map
+  -> minimal reconcile decision
+  -> authorized write
+  -> independent read-back
+  -> accepted mutation
+```
+
+This makes relation/evidence checks operational rather than merely descriptive.
+A semantic mapper can recommend whether to update, link, create, or defer, while
+the persistence and verification layers remain independently accountable.
+
+A write transport reporting success is not sufficient evidence that the intended
+knowledge state exists remotely. See
+[Knowledge Orchestration Plane](knowledge-orchestration-plane.md) for the
+experimental receipt and bounded-repair contract.

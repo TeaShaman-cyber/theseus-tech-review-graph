@@ -51,3 +51,29 @@ Notion was selected historically because its connector worked reliably across bo
 - **Public specification** defines contracts and reproducible validation.
 
 No transport success implies semantic authority.
+
+## Experimental Knowledge Orchestration Plane
+
+Research issue [#5](https://github.com/TeaShaman-cyber/theseus-tech-review-graph/issues/5)
+adds an experimental control plane around durable knowledge mutation:
+
+```mermaid
+flowchart LR
+    C[Candidate knowledge] --> O[Orchestrator]
+    O --> M[Relation mapper]
+    M --> R[Reconcile minimal mutation]
+    R --> W[Governed writer]
+    W --> V[Independent verifier]
+    V --> S[Accepted durable state]
+    V -. failed gate .-> B[Bounded repair]
+    B --> V
+```
+
+This extends the existing replaceable-module architecture without changing
+authority. Relation mapping is advisory; the writer performs only authorized
+mutations; acceptance requires an observable verified postcondition.
+
+Current implementations such as Graph Mode, Ace Knowledge Graph, GitHub, and
+MarcoPolo are operational examples, not architectural requirements. The full
+experimental contract is in
+[Knowledge Orchestration Plane](knowledge-orchestration-plane.md).
