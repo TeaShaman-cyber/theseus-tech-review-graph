@@ -1,0 +1,16 @@
+{
+  "schema_version": "knowledge-mutation-receipt-experimental-v0",
+  "receipt_id": "mutation-receipt.tech-review-2026-09-08.needle-issue-47",
+  "candidate_id": "tech-review-2026-09-08-needle-enrichment",
+  "observed_on": "2026-09-08",
+  "relation_map_digest": null,
+  "relation_map_identity_status": "UNKNOWN",
+  "decision": "CREATE_NEW",
+  "target": "TeaShaman-cyber/theseus-needle-lab#47",
+  "writer_route": "native GitHub write fallback after MarcoPolo transport corruption",
+  "write_status": "COMPLETED",
+  "verification_route": "MarcoPolo governed GitHub read-back",
+  "postcondition_status": "VERIFIED",
+  "repair_count": 1,
+  "notes": "The initial MarcoPolo write created issue #47 with a corrupted body. An authorized native GitHub fallback repaired the body and an independent MarcoPolo read-back verified the final remote state. Ace saved the relation graph, but the tool did not expose canonical graph bytes, so the relation-map digest remains UNKNOWN rather than being reconstructed after the fact."
+}

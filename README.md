@@ -57,6 +57,7 @@ No automatic Notion ingestion, Basic Memory synchronization, crawler, vector dat
 
 - [Architecture](docs/architecture.md)
 - [KnowledgeOps](docs/knowledgeops.md)
+- [Knowledge Orchestration Plane (experimental)](docs/knowledge-orchestration-plane.md)
 - [Epistemic contract](docs/epistemic-contract.md)
 - [Lifecycle](docs/lifecycle.md)
 - [Intake contract](docs/intake-contract.md)

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://teashaman-cyber.github.io/theseus-tech-review-graph/experimental/knowledge-mutation-receipt.schema.json",
+  "title": "Experimental Knowledge Mutation Receipt",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "receipt_id", "candidate_id", "observed_on",
+    "relation_map_digest", "relation_map_identity_status", "decision",
+    "target", "writer_route", "write_status", "verification_route",
+    "postcondition_status", "repair_count"
+  ],
+  "properties": {
+    "schema_version": {"const": "knowledge-mutation-receipt-experimental-v0"},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "observed_on": {"type": "string", "format": "date"},
+    "relation_map_digest": {
+      "anyOf": [
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        {"type": "null"}
+      ]
+    },
+    "relation_map_identity_status": {"enum": ["VERIFIED", "UNKNOWN"]},
+    "decision": {"enum": ["UPDATE_EXISTING", "LINK_EXISTING", "CREATE_NEW", "REJECT_OR_DEFER"]},
+    "target": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+    "writer_route": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+    "write_status": {"enum": ["NOT_RUN", "COMPLETED", "FAILED", "UNKNOWN"]},
+    "verification_route": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+    "postcondition_status": {"enum": ["NOT_APPLICABLE", "VERIFIED", "FAILED", "UNKNOWN"]},
+    "repair_count": {"type": "integer", "minimum": 0, "maximum": 1},
+    "notes": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"relation_map_identity_status": {"const": "VERIFIED"}}},
+      "then": {"properties": {"relation_map_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}
+    },
+    {
+      "if": {"properties": {"decision": {"const": "REJECT_OR_DEFER"}}},
+      "then": {
+        "properties": {
+          "target": {"type": "null"},
+          "writer_route": {"type": "null"},
+          "write_status": {"const": "NOT_RUN"},
+          "verification_route": {"type": "null"},
+          "postcondition_status": {"const": "NOT_APPLICABLE"},
+          "repair_count": {"const": 0}
+        }
+      },
+      "else": {
+        "properties": {
+          "target": {"type": "string", "minLength": 1},
+          "writer_route": {"type": "string", "minLength": 1},
+          "write_status": {"enum": ["COMPLETED", "FAILED", "UNKNOWN"]},
+          "verification_route": {"type": "string", "minLength": 1},
+          "postcondition_status": {"enum": ["VERIFIED", "FAILED", "UNKNOWN"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"postcondition_status": {"const": "VERIFIED"}}},
+      "then": {
+        "properties": {
+          "write_status": {"const": "COMPLETED"},
+          "verification_route": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}

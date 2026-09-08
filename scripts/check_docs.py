@@ -16,6 +16,11 @@ REQUIRED = {
         'maintained state',
         'Schema validity proves shape, not truth',
     ],
+    'docs/knowledge-orchestration-plane.md': [
+        'writer self-report does not prove persistence',
+        'relation mapper is advisory, not authority',
+        'bounded repair',
+    ],
     'docs/epistemic-contract.md': [],
     'docs/intake-contract.md': [],
     'docs/lifecycle.md': [],
