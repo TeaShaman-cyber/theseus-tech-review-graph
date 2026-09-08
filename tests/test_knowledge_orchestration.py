@@ -27,6 +27,14 @@ class KnowledgeOrchestrationTests(unittest.TestCase):
         validator = Draft202012Validator(schema, format_checker=FormatChecker())
         self.assertTrue(any(error.validator == "maximum" for error in validator.iter_errors(document)))
 
+    def test_unknown_relation_map_identity_requires_null_digest(self):
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        document = json.loads(EXAMPLE.read_text(encoding="utf-8"))
+        document["relation_map_identity_status"] = "UNKNOWN"
+        document["relation_map_digest"] = "a" * 64
+        validator = Draft202012Validator(schema, format_checker=FormatChecker())
+        self.assertNotEqual([], list(validator.iter_errors(document)))
+
     def test_reject_or_defer_cannot_claim_a_write(self):
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
         document = copy.deepcopy(json.loads(EXAMPLE.read_text(encoding="utf-8")))

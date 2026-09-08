@@ -37,6 +37,10 @@
       "then": {"properties": {"relation_map_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}
     },
     {
+      "if": {"properties": {"relation_map_identity_status": {"const": "UNKNOWN"}}},
+      "then": {"properties": {"relation_map_digest": {"type": "null"}}}
+    },
+    {
       "if": {"properties": {"decision": {"const": "REJECT_OR_DEFER"}}},
       "then": {
         "properties": {
