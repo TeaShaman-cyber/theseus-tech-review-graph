@@ -30,7 +30,7 @@ flowchart TD
     V --> O[Briefs / analysis / alerts]
 ```
 
-Current implementations are historical choices:
+Historical implementation provenance for the technology-review vertical:
 
 - producers: ChatGPT scheduled tasks, Grok automations;
 - intake/corpus: Notion;

@@ -2,7 +2,7 @@
 
 The intake layer accepts research output from replaceable producers and preserves enough context for later normalization.
 
-Current implementation: Notion. This is not mandatory.
+Historical/reference implementation for the technology-review vertical: Notion. This is not mandatory and does not establish current program-wide runtime state.
 
 A conforming intake record should make available, when known:
 

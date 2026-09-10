@@ -114,9 +114,11 @@ It is not part of the accepted v0.1 KnowledgeOps entity model.
 
 Program-level navigation is tracked in
 [`theseus-research#28`](https://github.com/TeaShaman-cyber/theseus-research/issues/28).
-The root registry already declares `theseus-tech-review-graph` as a Theseus
-research line. Cross-repository issue relationships remain coordination edges,
-not proof edges:
+Candidate registry PR #5 in `theseus-research` declares
+`theseus-tech-review-graph` as a Theseus research line, while the accepted root
+`main` does not yet contain `registry/research-lines.json`. Until that registry
+track is accepted, the membership remains candidate state. Cross-repository
+issue relationships remain coordination edges, not proof edges:
 
 ```text
 registry membership
