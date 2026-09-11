@@ -77,7 +77,7 @@ After the repair, the postcondition is verified again.
 
 ## Provider-neutral operational example
 
-The 2026-09-08 Needle enrichment run used current providers in these roles:
+The 2026-09-08 Needle enrichment run observed the following providers in these roles:
 
 | Role | Operational provider |
 |---|---|
@@ -114,9 +114,13 @@ It is not part of the accepted v0.1 KnowledgeOps entity model.
 
 Program-level navigation is tracked in
 [`theseus-research#28`](https://github.com/TeaShaman-cyber/theseus-research/issues/28).
-The root registry already declares `theseus-tech-review-graph` as a Theseus
-research line. Cross-repository issue relationships remain coordination edges,
-not proof edges:
+As observed on 2026-09-11, candidate registry PR
+[#5](https://github.com/TeaShaman-cyber/theseus-research/pull/5) remained open and
+declared `theseus-tech-review-graph` as a Theseus research line. At the same
+observation point, accepted root `main` did not contain
+`registry/research-lines.json`. Therefore that membership was candidate state,
+not accepted root state. Cross-repository issue relationships remain
+coordination edges, not proof edges:
 
 ```text
 registry membership

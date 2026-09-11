@@ -29,9 +29,9 @@ flowchart LR
 
 Every box is replaceable. Compatibility is defined by the contract crossing each boundary.
 
-## Current implementation map
+## Historical implementation map for the technology-review vertical
 
-| Role | Current implementation | Architectural requirement? |
+| Role | Historical implementation | Architectural requirement? |
 |---|---|---|
 | Research producer | ChatGPT tasks, Grok automations | No |
 | Intake / corpus | Notion | No |
@@ -39,7 +39,7 @@ Every box is replaceable. Compatibility is defined by the contract crossing each
 | Knowledge state | Basic Memory | No |
 | Public specification | GitHub | No, but v0.1 is hosted here |
 
-Notion was selected historically because its connector worked reliably across both ChatGPT and Grok. Basic Memory was selected because its memory graph, documentation, and skill/workflow corpus made it practical to derive Theseus adaptations. These are provenance facts, not permanent dependencies.
+Notion was selected historically because its connector worked reliably across both ChatGPT and Grok. Basic Memory was selected because its memory graph, documentation, and skill/workflow corpus made it practical to derive Theseus adaptations. These are provenance facts, not permanent dependencies. This table does not establish current program-wide Theseus runtime state.
 
 ## Authority boundaries
 
@@ -73,7 +73,7 @@ This extends the existing replaceable-module architecture without changing
 authority. Relation mapping is advisory; the writer performs only authorized
 mutations; acceptance requires an observable verified postcondition.
 
-Current implementations such as Graph Mode, Ace Knowledge Graph, GitHub, and
-MarcoPolo are operational examples, not architectural requirements. The full
+Providers observed in the 2026-09-08 reference run, such as Graph Mode, Ace Knowledge Graph, GitHub, and
+MarcoPolo, are operational examples, not architectural requirements or claims about current program-wide runtime state. The full
 experimental contract is in
 [Knowledge Orchestration Plane](knowledge-orchestration-plane.md).

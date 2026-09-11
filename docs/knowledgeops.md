@@ -14,7 +14,7 @@ flowchart TD
     D --> K
 ```
 
-Historical stage names used in the current Basic Memory adaptation are:
+Historical stage names from the Basic Memory-derived technology-review adaptation are:
 
 ```text
 memory-ingest -> memory-schema -> memory-tasks -> memory-lifecycle -> memory-reflect
