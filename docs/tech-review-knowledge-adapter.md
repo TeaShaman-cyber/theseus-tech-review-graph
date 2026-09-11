@@ -2,7 +2,7 @@
 
 The **Tech Review Knowledge Adapter** is the vendor-neutral role that converts research corpus material into normalized knowledge-state objects.
 
-Historical/reference implementation for the technology-review vertical: `memory-tech-brief`, derived from and adapted using Basic Memory's documented skills/workflows. This records provenance and does not establish current program-wide runtime state.
+External historical implementation for the technology-review vertical: `memory-tech-brief`, derived from and adapted using Basic Memory's documented skills/workflows. This records provenance and does not establish current program-wide runtime state.
 
 Its responsibility is not merely summarization:
 

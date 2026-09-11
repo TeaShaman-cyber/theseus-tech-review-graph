@@ -31,7 +31,7 @@ Every box is replaceable. Compatibility is defined by the contract crossing each
 
 ## Historical implementation map for the technology-review vertical
 
-| Role | Historical/reference implementation | Architectural requirement? |
+| Role | Historical implementation | Architectural requirement? |
 |---|---|---|
 | Research producer | ChatGPT tasks, Grok automations | No |
 | Intake / corpus | Notion | No |

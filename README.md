@@ -2,7 +2,7 @@
 
 Public reference implementation of **Theseus KnowledgeOps / informational CI/CD**.
 
-The first vertical is technology-review intelligence, but the architecture is defined by **roles and contracts**, not by the products currently filling those roles.
+The first vertical is technology-review intelligence, but the architecture is defined by **roles and contracts**, not by any particular product implementation.
 
 ## Core invariant
 
@@ -16,7 +16,7 @@ must survive replacement of:
 ChatGPT + Grok + Notion + Basic Memory
 ```
 
-If every current product were replaced tomorrow, a new agent should be able to reconstruct the intended pipeline from this repository alone.
+If every named implementation were replaced, a new agent should be able to reconstruct the intended pipeline from this repository alone.
 
 ## Reference pipeline
 

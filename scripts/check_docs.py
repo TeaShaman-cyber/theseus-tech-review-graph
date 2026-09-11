@@ -6,7 +6,7 @@ REQUIRED = {
     'README.md': [
         'roles and contracts',
         'None is architecturally mandatory',
-        'If every current product were replaced tomorrow',
+        'If every named implementation were replaced',
     ],
     'docs/architecture.md': [
         'Every box is replaceable',
